@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -16,8 +15,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.CalendarView;
 import android.widget.GridView;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,6 +38,7 @@ import java.util.Locale;
 
 import runapp.test.no1.myapplication.library.CalendarAdapter;
 import runapp.test.no1.myapplication.library.DayInfo;
+import runapp.test.no1.myapplication.library.OnSwipeTouchListener;
 
 public class calActivity extends AppCompatActivity {
 
@@ -53,6 +54,9 @@ public class calActivity extends AppCompatActivity {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd(EEE)", Locale.getDefault());
     Date selectedDate = new Date();
 
+    private ImageButton leftBtn;
+    private ImageButton rightBtn;
+
     public Integer id;
 
     @Override
@@ -60,39 +64,38 @@ public class calActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cal);
 
-        Button button = (Button)findViewById(R.id.planSetBtn);
-        button.setOnClickListener(new View.OnClickListener() {
+        //Button button = (Button)findViewById(R.id.planSetBtn);
+        /*button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 DialogSelectOption();
             }
-        });
+        });*/
 
         Intent intent = getIntent();
         id = intent.getIntExtra("id", 0);
 
         checkFunction();
 
-        Button btnPreviousCalendar = findViewById(R.id.btn_previous_calendar);
-        Button btnNextCalendar = findViewById(R.id.btn_next_calendar);
-
         tvCalendarTitle = findViewById(R.id.tv_calendar_title);
         tvSelectedDate = findViewById(R.id.tv_selected_date);
         gvCalendar = findViewById(R.id.gv_calendar);
 
-        btnPreviousCalendar.setOnClickListener(new View.OnClickListener(){
+        leftBtn = findViewById(R.id.leftBtn);
+        rightBtn = findViewById(R.id.rightBtn);
+
+        leftBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
                 mThisMonthCalendar.add(Calendar.MONTH, -1);
-
                 getCalendar(mThisMonthCalendar.getTime());
             }
         });
-        btnNextCalendar.setOnClickListener(new View.OnClickListener(){
+
+        rightBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
                 mThisMonthCalendar.add(Calendar.MONTH, +1);
-
                 getCalendar(mThisMonthCalendar.getTime());
             }
         });
@@ -100,39 +103,19 @@ public class calActivity extends AppCompatActivity {
         gvCalendar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Log.d("click",view.getTag().toString());
+                Log.d("selectedDate",((DayInfo)view.getTag()).getDate().toString());
+
                 setSelectedDate(((DayInfo)view.getTag()).getDate());
+
                 tvSelectedDate.setText(sdf.format(mCalendarAdapter.selectedDate));
 
                 mCalendarAdapter.notifyDataSetChanged();
             }
         });
 
-        Button btnConfirm = findViewById(R.id.btn_confirm);
-        Button btnCancel = findViewById(R.id.btn_cancel);
-
-        btnConfirm.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                //MyGridViewCalendar.this.getDialog().cancel();
-                //((MainActivity)getActivity()).selectedDate = selectedDate;
-                selectedDateList = loadFile(id.toString());
-                mCalendarAdapter.notifyDataSetChanged();
-
-                tvSelectedDate.setText(sdf.format(selectedDate));
-            }
-        });
-
-        btnCancel.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-
-                Log.d("cancel","cancel");
-            }
-        });
-
         arrayListDayInfo = new ArrayList<>();
         selectedDateList = new ArrayList<>();
+
     }
 
     @Override
@@ -149,7 +132,7 @@ public class calActivity extends AppCompatActivity {
 
         if(mCalendarAdapter != null) {
             mCalendarAdapter.selectedDate = date;
-            mCalendarAdapter.selectedDateList = selectedDateList;
+            //mCalendarAdapter.selectedDateList = selectedDateList;
         }
     }
 
@@ -205,7 +188,7 @@ public class calActivity extends AppCompatActivity {
             calendar.add(Calendar.DATE, +1);
         }
 
-        mCalendarAdapter = new CalendarAdapter(arrayListDayInfo, selectedDate, selectedDateList);
+        mCalendarAdapter = new CalendarAdapter(arrayListDayInfo, selectedDate);
         gvCalendar.setAdapter(mCalendarAdapter);
 
         tvSelectedDate.setText(sdf.format(selectedDate));
@@ -213,21 +196,26 @@ public class calActivity extends AppCompatActivity {
 
     private void setCalendarTitle(){
         StringBuilder sb = new StringBuilder();
-
+        String monthStr;
+        Integer monthInt = mThisMonthCalendar.get(Calendar.MONTH) + 1;
+        if(monthInt < 10){
+            monthStr = "0"+ monthInt;
+        }else{
+            monthStr = monthInt.toString();
+        }
         sb.append(mThisMonthCalendar.get(Calendar.YEAR))
-                .append("년 ")
-                .append((mThisMonthCalendar.get(Calendar.MONTH) + 1))
-                .append("월");
+                .append("/ ")
+                .append(monthStr);
         tvCalendarTitle.setText(sb.toString());
     }
 
     public void checkFunction(){
         int permissioninfo = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if(permissioninfo == PackageManager.PERMISSION_GRANTED){
-            Toast.makeText(this,"SDCard 쓰기 권한 있음",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"SDCard(Write is available.)",Toast.LENGTH_SHORT).show();
         }else{
             if(ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.WRITE_EXTERNAL_STORAGE)){
-                Toast.makeText(this, "권한 설명",Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Permission Discription",Toast.LENGTH_SHORT).show();
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},100);
 
             }else{
@@ -241,8 +229,8 @@ public class calActivity extends AppCompatActivity {
         String str = null;
         if(requestCode == 100){
             if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                str = "SD Card 쓰기권한 승인";
-            else str = "SD Card 쓰기권한 거부";
+                str = "SD Card Write Permission is approved.";
+            else str = "SD Card Write Permission is denyed.";
             Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
         }
     }
@@ -352,7 +340,7 @@ public class calActivity extends AppCompatActivity {
                                 try {
                                     Date saveDate = new SimpleDateFormat("yyyy-MM-dd").parse(str);
                                     selectedDateList.add(saveDate);
-                                    mCalendarAdapter.selectedDateList = selectedDateList;
+                                    //mCalendarAdapter.selectedDateList = selectedDateList;
                                     mCalendarAdapter.notifyDataSetChanged();
                                 }catch (ParseException e){
 
@@ -363,7 +351,7 @@ public class calActivity extends AppCompatActivity {
                                 try {
                                     Date saveDate = new SimpleDateFormat("yyyy-MM-dd").parse(str);
                                     selectedDateList.add(saveDate);
-                                    mCalendarAdapter.selectedDateList = selectedDateList;
+                                    //mCalendarAdapter.selectedDateList = selectedDateList;
                                     mCalendarAdapter.notifyDataSetChanged();
                                 }catch (ParseException e){
 
@@ -374,7 +362,7 @@ public class calActivity extends AppCompatActivity {
                                 try {
                                     Date saveDate = new SimpleDateFormat("yyyy-MM-dd").parse(str);
                                     selectedDateList.add(saveDate);
-                                    mCalendarAdapter.selectedDateList = selectedDateList;
+                                    //mCalendarAdapter.selectedDateList = selectedDateList;
                                     mCalendarAdapter.notifyDataSetChanged();
                                 }catch (ParseException e){
 
@@ -385,7 +373,7 @@ public class calActivity extends AppCompatActivity {
                                 try {
                                     Date saveDate = new SimpleDateFormat("yyyy-MM-dd").parse(str);
                                     selectedDateList.add(saveDate);
-                                    mCalendarAdapter.selectedDateList = selectedDateList;
+                                    //mCalendarAdapter.selectedDateList = selectedDateList;
                                     mCalendarAdapter.notifyDataSetChanged();
                                 }catch (ParseException e){
 

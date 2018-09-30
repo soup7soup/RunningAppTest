@@ -27,12 +27,12 @@ import runapp.test.no1.myapplication.R;
 public class CalendarAdapter extends BaseAdapter {
     private ArrayList<DayInfo> arrayListDayInfo;
     public Date selectedDate;
-    public ArrayList<Date> selectedDateList;
+    //public ArrayList<Date> selectedDateList;
 
-    public CalendarAdapter(ArrayList<DayInfo> arrayLIstDayInfo, Date date, ArrayList<Date> selectedDateList) {
+    public CalendarAdapter(ArrayList<DayInfo> arrayLIstDayInfo, Date date) {
         this.arrayListDayInfo = arrayLIstDayInfo;
         this.selectedDate = date;
-        this.selectedDateList = selectedDateList;
+        //this.selectedDateList = selectedDateList;
     }
 
     @Override
@@ -66,9 +66,9 @@ public class CalendarAdapter extends BaseAdapter {
             tvDay.setText(day.getDay());
 
             ImageView ivSelected = convertView.findViewById(R.id.iv_selected);
-            ImageView ivPlan = convertView.findViewById(R.id.iv_plan);
+            //ImageView ivPlan = convertView.findViewById(R.id.iv_plan);
 
-            for (Date selDate : selectedDateList) {
+          /*  for (Date selDate : selectedDateList) {
                 if(day.isSameDay(selDate)){
                     Log.d("position",position+"");
                     Log.d("selDate",selDate.toString());
@@ -76,11 +76,11 @@ public class CalendarAdapter extends BaseAdapter {
                 }else{
                     //ivSelected_plan.setVisibility(View.INVISIBLE);
                 }
-            }
+            }*/
 
             if(day.isSameDay(selectedDate)){
                 ivSelected.setVisibility(View.VISIBLE);
-                ivPlan.setVisibility(View.INVISIBLE);
+                //ivPlan.setVisibility(View.INVISIBLE);
             }else{
                 ivSelected.setVisibility(View.INVISIBLE);
             }
